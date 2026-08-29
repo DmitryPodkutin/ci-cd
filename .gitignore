@@ -1,0 +1,16 @@
+# Gradle
+.gradle/
+build/
+.gradle-home/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+
+# Tooling state
+.codewhale/
+/AGENTS.md
