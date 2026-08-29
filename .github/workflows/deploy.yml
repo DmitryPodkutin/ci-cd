@@ -49,9 +49,9 @@ jobs:
 
       - name: Stop old instance
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }} "pkill -f 'app-[g]ithub.jar' || true"
+          ssh -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }} "screen -S app-github -X quit 2>/dev/null; pkill -f 'app-[g]ithub.jar' || true"
           sleep 2
 
       - name: Start new instance
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }} "cd ${{ secrets.DEPLOY_PATH }} && SERVER_PORT=${{ env.APP_PORT }} CI_PROVIDER=\"${{ env.APP_CI_PROVIDER }}\" nohup java -jar ${{ env.APP_JAR_NAME }} > ${{ env.APP_JAR_NAME }}.log 2>&1 </dev/null & exit 0" </dev/null
+          ssh -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }} "screen -dmS app-github bash -c 'cd ${{ secrets.DEPLOY_PATH }} && SERVER_PORT=${{ env.APP_PORT }} CI_PROVIDER=\"${{ env.APP_CI_PROVIDER }}\" java -jar ${{ env.APP_JAR_NAME }} > ${{ env.APP_JAR_NAME }}.log 2>&1'"

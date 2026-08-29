@@ -54,7 +54,7 @@ pipeline {
             steps {
                 sshagent(['jenkins-deploy-key']) {
                     sh '''
-                        ssh "${DEPLOY_USER}@${DEPLOY_SERVER}" "pkill -f 'app-[j]enkins.jar' || true"
+                        ssh "${DEPLOY_USER}@${DEPLOY_SERVER}" "screen -S app-jenkins -X quit 2>/dev/null; pkill -f 'app-[j]enkins.jar' || true"
                         sleep 2
                     '''
                 }
@@ -65,7 +65,7 @@ pipeline {
             steps {
                 sshagent(['jenkins-deploy-key']) {
                     sh '''
-                        ssh "${DEPLOY_USER}@${DEPLOY_SERVER}" "cd '${DEPLOY_PATH}' && SERVER_PORT=${APP_PORT} CI_PROVIDER='${CI_PROVIDER}' nohup java -jar ${APP_JAR_NAME} > ${APP_JAR_NAME}.log 2>&1 </dev/null & exit 0" </dev/null
+                        ssh "${DEPLOY_USER}@${DEPLOY_SERVER}" "screen -dmS app-jenkins bash -c 'cd ${DEPLOY_PATH} && SERVER_PORT=${APP_PORT} CI_PROVIDER=\"${CI_PROVIDER}\" java -jar ${APP_JAR_NAME} > ${APP_JAR_NAME}.log 2>&1'"
                     '''
                 }
             }
