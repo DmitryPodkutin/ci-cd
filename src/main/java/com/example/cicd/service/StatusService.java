@@ -16,16 +16,22 @@ public class StatusService {
 
     private final LocalDateTime startedAt;
     private final String messageTemplate;
+    private final String ciProvider;
 
-    public StatusService(@Value("${app.status.message}") String messageTemplate) {
+    public StatusService(
+            @Value("${app.status.message}") String messageTemplate,
+            @Value("${app.ci-provider:локальной сборки}") String ciProvider
+    ) {
         this.startedAt = LocalDateTime.now();
         this.messageTemplate = messageTemplate;
+        this.ciProvider = ciProvider;
         log.info("StatusService инициализирован, время запуска приложения зафиксировано: {}", startedAt);
     }
 
     public String getStatusMessage() {
         return String.format(
                 messageTemplate,
+                ciProvider,
                 startedAt.format(DATE_FORMATTER),
                 startedAt.format(TIME_FORMATTER)
         );

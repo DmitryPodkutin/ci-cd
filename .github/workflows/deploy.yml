@@ -4,6 +4,13 @@ on:
   push:
     branches: [ main ]
 
+env:
+  # Порт инстанса, собранного в GitHub Actions.
+  # Инстанс из Jenkins запускается на другом порту (см. Jenkinsfile).
+  APP_PORT: "8081"
+  APP_CI_PROVIDER: "GitHub CI"
+  APP_JAR_NAME: "app-github.jar"
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -35,9 +42,9 @@ jobs:
 
       - name: Copy JAR via SCP
         run: |
-          scp -i ~/.ssh/id_rsa build/libs/*-SNAPSHOT.jar ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }}:${{ secrets.DEPLOY_PATH }}/application.jar
+          scp -i ~/.ssh/id_rsa build/libs/*-SNAPSHOT.jar ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }}:${{ secrets.DEPLOY_PATH }}/${{ env.APP_JAR_NAME }}
 
       - name: Restart application
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }} "pkill -f '${{ secrets.DEPLOY_PATH }}/[a]pplication.jar' || true"
-          ssh -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }} "nohup java -jar ${{ secrets.DEPLOY_PATH }}/application.jar > ${{ secrets.DEPLOY_PATH }}/app.log 2>&1 </dev/null &"
+          ssh -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }} "pkill -f '${{ secrets.DEPLOY_PATH }}/app-[g]ithub.jar' || true"
+          ssh -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }} "cd ${{ secrets.DEPLOY_PATH }} && SERVER_PORT=${{ env.APP_PORT }} CI_PROVIDER=\"${{ env.APP_CI_PROVIDER }}\" nohup java -jar ${{ env.APP_JAR_NAME }} > ${{ env.APP_JAR_NAME }}.log 2>&1 </dev/null &"
