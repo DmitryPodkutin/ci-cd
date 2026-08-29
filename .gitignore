@@ -14,3 +14,7 @@ build/
 # Tooling state
 .codewhale/
 /AGENTS.md
+
+# Локальные секреты и окружение
+.env
+.deploy/
