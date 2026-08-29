@@ -2,11 +2,10 @@
 // но с другим CI-провайдером в сообщении и на другом порту.
 //
 // Предварительные требования на Jenkins-агенте:
-//   - JDK 17 (выставьте JAVA_HOME или настройте инструмент JDK в Jenkins);
-//   - Gradle 8.x в PATH (либо используйте ./gradlew после `gradle wrapper`);
-//   - плагин SSH Agent и credential 'jenkins-deploy-key' с приватным SSH-ключом;
-//   - переменные окружения DEPLOY_SERVER, DEPLOY_USER, DEPLOY_PATH
-//     (через Credentials Binding или глобальные настройки Jenkins).
+//   - JDK 17 (входит в образ jenkins/jenkins:lts-jdk17);
+//   - Gradle wrapper (./gradlew) уже в репозитории, системный Gradle не нужен;
+//   - ssh/scp (входят в кастомный образ, см. jenkins/Dockerfile);
+//   - плагин SSH Agent и credential 'jenkins-deploy-key' с приватным SSH-ключом.
 
 pipeline {
     agent any
@@ -15,6 +14,10 @@ pipeline {
         APP_PORT = '8082'
         CI_PROVIDER = 'Jenkins CI'
         APP_JAR_NAME = 'app-jenkins.jar'
+        // Параметры деплоя (не секреты — ключ хранится отдельно в credential).
+        DEPLOY_SERVER = '79.137.203.54'
+        DEPLOY_USER = 'deploy'
+        DEPLOY_PATH = '/home/deploy/app'
     }
 
     stages {
@@ -26,7 +29,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'gradle build -x test'
+                sh 'chmod +x ./gradlew && ./gradlew build -x test'
             }
         }
 
