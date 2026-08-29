@@ -13,6 +13,7 @@ build/
 
 # Tooling state
 .codewhale/
+.veai/
 /AGENTS.md
 
 # Локальные секреты и окружение
