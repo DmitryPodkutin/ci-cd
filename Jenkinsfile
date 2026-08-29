@@ -45,9 +45,27 @@ pipeline {
                     sh '''
                         set -e
                         scp -o StrictHostKeyChecking=accept-new build/libs/*-SNAPSHOT.jar "${DEPLOY_USER}@${DEPLOY_SERVER}:${DEPLOY_PATH}/${APP_JAR_NAME}"
+                    '''
+                }
+            }
+        }
+
+        stage('Stop old instance') {
+            steps {
+                sshagent(['jenkins-deploy-key']) {
+                    sh '''
                         ssh "${DEPLOY_USER}@${DEPLOY_SERVER}" "pkill -f 'app-[j]enkins.jar' || true"
                         sleep 2
-                        ssh "${DEPLOY_USER}@${DEPLOY_SERVER}" "cd '${DEPLOY_PATH}' && SERVER_PORT=${APP_PORT} CI_PROVIDER='${CI_PROVIDER}' nohup java -jar ${APP_JAR_NAME} > ${APP_JAR_NAME}.log 2>&1 </dev/null &" </dev/null
+                    '''
+                }
+            }
+        }
+
+        stage('Start new instance') {
+            steps {
+                sshagent(['jenkins-deploy-key']) {
+                    sh '''
+                        ssh -n "${DEPLOY_USER}@${DEPLOY_SERVER}" "cd '${DEPLOY_PATH}' && SERVER_PORT=${APP_PORT} CI_PROVIDER='${CI_PROVIDER}' setsid nohup java -jar ${APP_JAR_NAME} > ${APP_JAR_NAME}.log 2>&1 </dev/null &"
                     '''
                 }
             }
