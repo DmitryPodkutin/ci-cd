@@ -33,6 +33,12 @@ pipeline {
             }
         }
 
+        stage('Test') {
+            steps {
+                sh './gradlew test'
+            }
+        }
+
         stage('Deploy') {
             steps {
                 sshagent(['jenkins-deploy-key']) {
