@@ -4,7 +4,7 @@
 // Предварительные требования:
 //   - Jenkins-контейнер запущен с доступом к Docker-сокету хоста
 //     (docker run ... -v /var/run/docker.sock:/var/run/docker.sock --group-add <docker-gid>);
-//   - Docker CLI установлен в образе (см. jenkins/Dockerfile);
+//   - Docker CLI установлен в образе (см. jenkins/docker/jenkins.Dockerfile);
 //   - на сервере поднят локальный регистри (docker run -d -p 5000:5000 registry);
 //   - плагин SSH Agent и credential 'jenkins-deploy-key' (для Docker не нужен,
 //     но оставлено для совместимости).
@@ -43,7 +43,7 @@ pipeline {
 
         stage('Build Image') {
             steps {
-                sh "docker build -t ${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER} ."
+                sh "docker build -f jenkins/docker/app.Dockerfile -t ${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER} ."
             }
         }
 
