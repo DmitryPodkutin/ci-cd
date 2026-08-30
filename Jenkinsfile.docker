@@ -1,0 +1,77 @@
+// Docker-пайплайн Jenkins: сборка образа, push в локальный регистри, деплой через docker run.
+// Запускается на том же Jenkins-сервере, но деплоит в Docker-контейнер (порт 8083).
+//
+// Предварительные требования:
+//   - Jenkins-контейнер запущен с доступом к Docker-сокету хоста
+//     (docker run ... -v /var/run/docker.sock:/var/run/docker.sock --group-add <docker-gid>);
+//   - Docker CLI установлен в образе (см. jenkins/Dockerfile);
+//   - на сервере поднят локальный регистри (docker run -d -p 5000:5000 registry);
+//   - плагин SSH Agent и credential 'jenkins-deploy-key' (для Docker не нужен,
+//     но оставлено для совместимости).
+
+pipeline {
+    agent any
+
+    environment {
+        // Локальный регистри на сервере (порт 5000).
+        REGISTRY = 'localhost:5000'
+        IMAGE_NAME = 'ci-cd'
+        // Порт инстанса в Docker. 8083 — чтобы не конфликтовать с JAR-инстансами (8081/8082).
+        APP_PORT = '8083'
+        CI_PROVIDER = 'Jenkins Docker CI'
+        CONTAINER_NAME = 'app-docker'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'chmod +x ./gradlew && ./gradlew build -x test'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh './gradlew test'
+            }
+        }
+
+        stage('Build Image') {
+            steps {
+                sh "docker build -t ${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER} ."
+            }
+        }
+
+        stage('Push to Registry') {
+            steps {
+                // Тег latest — всегда последний; BUILD_NUMBER — конкретная сборка.
+                sh "docker tag ${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER} ${REGISTRY}/${IMAGE_NAME}:latest"
+                sh "docker push ${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER}"
+                sh "docker push ${REGISTRY}/${IMAGE_NAME}:latest"
+            }
+        }
+
+        stage('Stop old container') {
+            steps {
+                sh "docker stop ${CONTAINER_NAME} 2>/dev/null || true"
+                sh "docker rm ${CONTAINER_NAME} 2>/dev/null || true"
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh "docker run -d \
+                        --name ${CONTAINER_NAME} \
+                        --restart unless-stopped \
+                        -p ${APP_PORT}:8080 \
+                        -e CI_PROVIDER='${CI_PROVIDER}' \
+                        ${REGISTRY}/${IMAGE_NAME}:latest"
+            }
+        }
+    }
+}

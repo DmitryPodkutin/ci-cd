@@ -54,4 +54,4 @@ jobs:
 
       - name: Start new instance
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }} "screen -dmS app-github bash -c 'cd ${{ secrets.DEPLOY_PATH }} && SERVER_PORT=${{ env.APP_PORT }} CI_PROVIDER=\"${{ env.APP_CI_PROVIDER }}\" java -jar ${{ env.APP_JAR_NAME }} > ${{ env.APP_JAR_NAME }}.log 2>&1'"
+          ssh -i ~/.ssh/id_rsa ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }} "export SERVER_PORT=${{ env.APP_PORT }} CI_PROVIDER='${{ env.APP_CI_PROVIDER }}' && cd ${{ secrets.DEPLOY_PATH }} && screen -dmS app-github bash -c 'java -jar ${{ env.APP_JAR_NAME }} > ${{ env.APP_JAR_NAME }}.log 2>&1'"

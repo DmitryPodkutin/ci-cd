@@ -65,7 +65,7 @@ pipeline {
             steps {
                 sshagent(['jenkins-deploy-key']) {
                     sh '''
-                        ssh "${DEPLOY_USER}@${DEPLOY_SERVER}" "screen -dmS app-jenkins bash -c 'cd ${DEPLOY_PATH} && SERVER_PORT=${APP_PORT} CI_PROVIDER=\"${CI_PROVIDER}\" java -jar ${APP_JAR_NAME} > ${APP_JAR_NAME}.log 2>&1'"
+                        ssh "${DEPLOY_USER}@${DEPLOY_SERVER}" "export SERVER_PORT=${APP_PORT} CI_PROVIDER='${CI_PROVIDER}' && cd ${DEPLOY_PATH} && screen -dmS app-jenkins bash -c 'java -jar ${APP_JAR_NAME} > ${APP_JAR_NAME}.log 2>&1'"
                     '''
                 }
             }
